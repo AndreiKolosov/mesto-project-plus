@@ -1,30 +1,48 @@
 import { ObjectId } from 'mongoose';
-import { Request, Response } from 'express';
-
+import { NextFunction, Request, Response } from 'express';
+import { BadRequestError, NotFoundError, ServerError } from '../errors';
 import Card from '../models/card';
 
-export const getCards = (req: Request, res: Response) => Card.find({})
-  .then((cards) => res.send({ data: cards }))
-  .catch((err) => res.status(500).send({ message: err.message }));
+export const getCards = (req: Request, res: Response, next: NextFunction) => Card.find({})
+  .then((cards) => {
+    if (!cards) {
+      throw new ServerError('Произошла ошибка при получении списка карточек.');
+    }
 
-export const createCard = (req: Request, res: Response) => {
+    res.send({ data: cards });
+  })
+  .catch(next);
+
+export const createCard = (req: Request, res: Response, next: NextFunction) => {
   const { name, link } = req.body;
   const id = req.user._id;
 
   return Card.create({ name, link, owner: id })
-    .then((card) => res.status(201).send({ data: card }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .then((card) => {
+      if (!card) {
+        throw new BadRequestError('Переданы некорректные данные при создании карточки.');
+      }
+
+      res.status(201).send({ data: card });
+    })
+    .catch(next);
 };
 
-export const deleteCard = (req: Request, res: Response) => {
+export const deleteCard = (req: Request, res: Response, next: NextFunction) => {
   const { cardId } = req.params;
 
   return Card.findByIdAndRemove(cardId)
-    .then(() => res.status(200).send({ message: 'success' }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .then((card) => {
+      if (!card) {
+        throw new NotFoundError('Карточка с указанным _id не найдена.');
+      }
+
+      res.status(200).send({ message: 'Карточка удалена' });
+    })
+    .catch(next);
 };
 
-export const likeCard = (req: Request, res: Response) => {
+export const likeCard = (req: Request, res: Response, next: NextFunction) => {
   const { cardId } = req.params;
   const id = req.user._id;
 
@@ -33,11 +51,17 @@ export const likeCard = (req: Request, res: Response) => {
     { $addToSet: { likes: id } },
     { new: true },
   )
-    .then(() => res.status(200).send({ message: 'success' }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .then((card) => {
+      if (!card) {
+        throw new NotFoundError('Передан несуществующий _id карточки.');
+      }
+
+      res.status(200).send(card);
+    })
+    .catch(next);
 };
 
-export const dislikeCard = (req: Request, res: Response) => {
+export const dislikeCard = (req: Request, res: Response, next: NextFunction) => {
   const { cardId } = req.params;
   const id = req.user._id as ObjectId;
 
@@ -46,6 +70,12 @@ export const dislikeCard = (req: Request, res: Response) => {
     { $pull: { likes: id } },
     { new: true },
   )
-    .then(() => res.status(200).send({ message: 'success' }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .then((card) => {
+      if (!card) {
+        throw new NotFoundError('Передан несуществующий _id карточки.');
+      }
+
+      res.status(200).send(card);
+    })
+    .catch(next);
 };

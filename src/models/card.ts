@@ -1,14 +1,7 @@
-import { Schema, model, Date } from 'mongoose';
+import { Schema, model } from 'mongoose';
+import { ICardModel } from '../types/card';
 
-interface ICard {
-  name: string;
-  link: string;
-  owner: Schema.Types.ObjectId;
-  likes: Schema.Types.ObjectId[];
-  createdAt: Date;
-}
-
-const cardSchema = new Schema<ICard>({
+const cardSchema = new Schema<ICardModel>({
   name: {
     type: String,
     minlength: 2,
@@ -36,4 +29,4 @@ const cardSchema = new Schema<ICard>({
   versionKey: false,
 });
 
-export default model<ICard>('card', cardSchema);
+export default model<ICardModel>('card', cardSchema);
