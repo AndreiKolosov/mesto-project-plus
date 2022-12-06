@@ -1,6 +1,7 @@
 import { Schema, model } from 'mongoose';
 
 interface IUser {
+  _id: string;
   name: string;
   about: string;
   avatar: string;
@@ -23,6 +24,8 @@ const userSchema = new Schema<IUser>({
     type: String,
     required: true,
   },
+}, {
+  versionKey: false,
 });
 
 export default model<IUser>('user', userSchema);
