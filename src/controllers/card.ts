@@ -6,7 +6,7 @@ import Card from '../models/card';
 export const getCards = (req: Request, res: Response, next: NextFunction) => Card.find({})
   .then((cards) => {
     if (!cards) {
-      throw new ServerError('Произошла ошибка при получении списка карточек.');
+      throw new ServerError('Произошла ошибка при получении списка постов. Попробуйте повторить позднее.');
     }
 
     res.send({ data: cards });
@@ -18,28 +18,32 @@ export const createCard = (req: Request, res: Response, next: NextFunction) => {
   const id = req.user._id;
 
   return Card.create({ name, link, owner: id })
-    .then((card) => {
-      if (!card) {
-        throw new BadRequestError('Переданы некорректные данные при создании карточки.');
+    .then((card) => res.status(201).send({ data: card }))
+    .catch((err) => {
+      let customError = err;
+
+      if (err.name === 'ValidationError') {
+        customError = new BadRequestError('Переданы некорректные данные при создании карточки.');
       }
 
-      res.status(201).send({ data: card });
-    })
-    .catch(next);
+      next(customError);
+    });
 };
 
 export const deleteCard = (req: Request, res: Response, next: NextFunction) => {
   const { cardId } = req.params;
 
   return Card.findByIdAndRemove(cardId)
-    .then((card) => {
-      if (!card) {
-        throw new NotFoundError('Карточка с указанным _id не найдена.');
+    .then(() => res.status(200).send({ message: 'Карточка удалена' }))
+    .catch((err) => {
+      let customError = err;
+
+      if (customError.name === 'CastError') {
+        customError = new NotFoundError('Карточка с указанным _id не найдена.');
       }
 
-      res.status(200).send({ message: 'Карточка удалена' });
-    })
-    .catch(next);
+      next(customError);
+    });
 };
 
 export const likeCard = (req: Request, res: Response, next: NextFunction) => {
@@ -51,14 +55,20 @@ export const likeCard = (req: Request, res: Response, next: NextFunction) => {
     { $addToSet: { likes: id } },
     { new: true },
   )
-    .then((card) => {
-      if (!card) {
-        throw new NotFoundError('Передан несуществующий _id карточки.');
+    .then((card) => res.status(200).send(card))
+    .catch((err) => {
+      let customError = err;
+
+      if (err.name === 'ValidationError') {
+        customError = new BadRequestError('Переданы некорректные данные для постановки лайка.');
       }
 
-      res.status(200).send(card);
-    })
-    .catch(next);
+      if (customError.name === 'CastError') {
+        customError = new NotFoundError('Передан несуществующий _id карточки.');
+      }
+
+      next(customError);
+    });
 };
 
 export const dislikeCard = (req: Request, res: Response, next: NextFunction) => {
@@ -70,12 +80,18 @@ export const dislikeCard = (req: Request, res: Response, next: NextFunction) => 
     { $pull: { likes: id } },
     { new: true },
   )
-    .then((card) => {
-      if (!card) {
-        throw new NotFoundError('Передан несуществующий _id карточки.');
+    .then((card) => res.status(200).send(card))
+    .catch((err) => {
+      let customError = err;
+
+      if (err.name === 'ValidationError') {
+        customError = new BadRequestError('Переданы некорректные данные для снятия лайка.');
       }
 
-      res.status(200).send(card);
-    })
-    .catch(next);
+      if (customError.name === 'CastError') {
+        customError = new NotFoundError('Передан несуществующий _id карточки.');
+      }
+
+      next(customError);
+    });
 };
