@@ -3,8 +3,7 @@ import * as dotenv from 'dotenv';
 import { join } from 'path';
 import mongoose from 'mongoose';
 import fakeAuth from './middlewares/fakeAuth';
-import userRoutes from './routes/user';
-import cardRoutes from './routes/card';
+import rootRouter from './routes';
 import errorHandler from './middlewares/errorHandler';
 
 dotenv.config({ path: join(__dirname, '../', '.env') });
@@ -22,9 +21,7 @@ mongoose.connect(`mongodb://${DB_HOST}:${DB_PORT}/mestodb`);
 
 app.use(json());
 app.use(fakeAuth);
-app.use(userRoutes);
-app.use(cardRoutes);
-
+app.use(rootRouter);
 app.use(errorHandler);
 
 app.listen(PORT, () => {

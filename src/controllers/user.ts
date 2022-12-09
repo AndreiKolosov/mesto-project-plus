@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { BadRequestError, NotFoundError, ServerError } from '../errors';
 import STATUS_CODES from '../utils/variables';
 import User from '../models/user';
+import { updateUser } from './helpers';
 
 export const getUsers = (req: Request, res: Response, next: NextFunction) => User.find({})
   .then((users) => {
@@ -51,11 +52,7 @@ export const updateProfile = (req: Request, res: Response, next: NextFunction) =
   const { name, about } = req.body;
   const id = req.user._id;
 
-  return User.findByIdAndUpdate(
-    id,
-    { name, about },
-    { new: true, runValidators: true },
-  )
+  return updateUser(id, { name, about })
     .then((user) => res.status(STATUS_CODES.Ok).send(user))
     .catch((err) => {
       let customError = err;
@@ -76,11 +73,7 @@ export const updateAvatar = (req: Request, res: Response, next: NextFunction) =>
   const { avatar } = req.body;
   const id = req.user._id;
 
-  return User.findByIdAndUpdate(
-    id,
-    { avatar },
-    { new: true, runValidators: true },
-  )
+  return updateUser(id, { avatar })
     .then((user) => res.status(STATUS_CODES.Ok).send(user))
     .catch((err) => {
       let customError = err;

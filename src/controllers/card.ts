@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from 'express';
 import { BadRequestError, NotFoundError, ServerError } from '../errors';
 import STATUS_CODES from '../utils/variables';
 import Card from '../models/card';
+import { toggleLike } from './helpers';
 
 export const getCards = (req: Request, res: Response, next: NextFunction) => Card.find({})
   .then((cards) => {
@@ -49,13 +50,9 @@ export const deleteCard = (req: Request, res: Response, next: NextFunction) => {
 
 export const likeCard = (req: Request, res: Response, next: NextFunction) => {
   const { cardId } = req.params;
-  const id = req.user._id;
+  const userId = req.user._id;
 
-  return Card.findByIdAndUpdate(
-    cardId,
-    { $addToSet: { likes: id } },
-    { new: true },
-  )
+  return toggleLike(cardId, userId, 'addLike')
     .then((card) => res.status(STATUS_CODES.Ok).send(card))
     .catch((err) => {
       let customError = err;
@@ -74,13 +71,9 @@ export const likeCard = (req: Request, res: Response, next: NextFunction) => {
 
 export const dislikeCard = (req: Request, res: Response, next: NextFunction) => {
   const { cardId } = req.params;
-  const id = req.user._id as ObjectId;
+  const userId = req.user._id as ObjectId;
 
-  return Card.findByIdAndUpdate(
-    cardId,
-    { $pull: { likes: id } },
-    { new: true },
-  )
+  return toggleLike(cardId, userId, 'removeLike')
     .then((card) => res.status(STATUS_CODES.Ok).send(card))
     .catch((err) => {
       let customError = err;
