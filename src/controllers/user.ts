@@ -1,13 +1,13 @@
 import { NextFunction, Request, Response } from 'express';
 import { BadRequestError, NotFoundError, ServerError } from '../errors';
-
+import STATUS_CODES from '../utils/variables';
 import User from '../models/user';
 
 export const getUsers = (req: Request, res: Response, next: NextFunction) => User.find({})
   .then((users) => {
     if (!users) {
       throw new ServerError(
-        'Произошла ошибка при получении списка пользователей. Попробуйте повторить позднее.',
+        'На сервере произошла ошибка.',
       );
     }
 
@@ -19,7 +19,7 @@ export const getUserById = (req: Request, res: Response, next: NextFunction) => 
   const { userId } = req.params;
 
   return User.findById(userId)
-    .then((user) => res.status(200).send(user))
+    .then((user) => res.status(STATUS_CODES.Ok).send(user))
     .catch((err) => {
       let customError = err;
 
@@ -35,7 +35,7 @@ export const createUser = (req: Request, res: Response, next: NextFunction) => {
   const { name, about, avatar } = req.body;
 
   return User.create({ name, about, avatar })
-    .then((user) => res.status(201).send(user))
+    .then((user) => res.status(STATUS_CODES.Created).send(user))
     .catch((err) => {
       let customError = err;
 
@@ -56,7 +56,7 @@ export const updateProfile = (req: Request, res: Response, next: NextFunction) =
     { name, about },
     { new: true, runValidators: true },
   )
-    .then((user) => res.status(200).send(user))
+    .then((user) => res.status(STATUS_CODES.Ok).send(user))
     .catch((err) => {
       let customError = err;
 
@@ -81,7 +81,7 @@ export const updateAvatar = (req: Request, res: Response, next: NextFunction) =>
     { avatar },
     { new: true, runValidators: true },
   )
-    .then((user) => res.status(200).send(user))
+    .then((user) => res.status(STATUS_CODES.Ok).send(user))
     .catch((err) => {
       let customError = err;
 
