@@ -1,4 +1,5 @@
 import { Schema, model } from 'mongoose';
+import { urlRegex } from '../utils/validation';
 import { ICardModel } from '../types/card';
 
 const cardSchema = new Schema<ICardModel>({
@@ -11,6 +12,12 @@ const cardSchema = new Schema<ICardModel>({
   link: {
     type: String,
     required: true,
+    validate: {
+      validator(link: string) {
+        return urlRegex.test(link);
+      },
+      message: 'Переданна невалидная ссылка.',
+    },
   },
   owner: {
     type: Schema.Types.ObjectId,

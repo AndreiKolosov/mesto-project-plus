@@ -1,4 +1,5 @@
 import { Schema, model } from 'mongoose';
+import { urlRegex } from '../utils/validation';
 import { IUserModel } from '../types/user';
 
 const userSchema = new Schema<IUserModel>({
@@ -17,6 +18,12 @@ const userSchema = new Schema<IUserModel>({
   avatar: {
     type: String,
     required: true,
+    validate: {
+      validator(link: string) {
+        return urlRegex.test(link);
+      },
+      message: 'Переданна невалидная ссылка.',
+    },
   },
 }, {
   versionKey: false,

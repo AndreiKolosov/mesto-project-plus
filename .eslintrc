@@ -19,6 +19,7 @@
         "import/extensions": [".js", ".ts"]
       },
       "rules": {
+        "no-useless-escape": 0,
         "linebreak-style": "off",
         "import/extensions": [
           "error",
