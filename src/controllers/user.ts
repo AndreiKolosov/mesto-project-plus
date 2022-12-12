@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import bcrypt from 'bcrypt';
 import { BadRequestError, NotFoundError, ServerError } from '../errors';
 import STATUS_CODES from '../utils/variables';
 import User from '../models/user';
@@ -33,15 +34,30 @@ export const getUserById = (req: Request, res: Response, next: NextFunction) => 
 };
 
 export const createUser = (req: Request, res: Response, next: NextFunction) => {
-  const { name, about, avatar } = req.body;
+  const {
+    email,
+    password,
+    name,
+    about,
+    avatar,
+  } = req.body;
 
-  return User.create({ name, about, avatar })
+  return bcrypt.hash(password, 10)
+    .then((hash) => User.create({
+      email,
+      password: hash,
+      name,
+      about,
+      avatar,
+    }))
     .then((user) => res.status(STATUS_CODES.Created).send(user))
     .catch((err) => {
       let customError = err;
 
       if (err.name === 'ValidationError') {
-        customError = new BadRequestError('Переданы некорректные данные при создании пользователя.');
+        customError = new BadRequestError(
+          'Переданы некорректные данные при создании пользователя.',
+        );
       }
 
       next(customError);
