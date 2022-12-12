@@ -1,3 +1,4 @@
+import { ObjectId } from 'mongoose';
 import { NextFunction, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
@@ -58,6 +59,22 @@ export const getUserById = (req: Request, res: Response, next: NextFunction) => 
     });
 };
 
+export const getAuthUser = (req: Request, res: Response, next: NextFunction) => {
+  const userId = req.user;
+
+  return User.findById(userId)
+    .then((user) => res.status(STATUS_CODES.Ok).send(user))
+    .catch((err) => {
+      let customError = err;
+
+      if (customError.name === 'CastError') {
+        customError = new NotFoundError('Пользователь с указанным _id не найден.');
+      }
+
+      next(customError);
+    });
+};
+
 export const createUser = (req: Request, res: Response, next: NextFunction) => {
   const {
     email,
@@ -75,7 +92,15 @@ export const createUser = (req: Request, res: Response, next: NextFunction) => {
       about,
       avatar,
     }))
-    .then((user) => res.status(STATUS_CODES.Created).send(user))
+    .then((user) => {
+      res.status(STATUS_CODES.Created).send({
+        email: user.email,
+        name: user.name,
+        about: user.about,
+        avatar: user.avatar,
+        _id: user._id,
+      });
+    })
     .catch((err) => {
       let customError = err;
 
@@ -91,7 +116,7 @@ export const createUser = (req: Request, res: Response, next: NextFunction) => {
 
 export const updateProfile = (req: Request, res: Response, next: NextFunction) => {
   const { name, about } = req.body;
-  const id = req.user._id;
+  const id = req.user as ObjectId;
 
   return updateUser(id, { name, about })
     .then((user) => res.status(STATUS_CODES.Ok).send(user))
@@ -112,7 +137,7 @@ export const updateProfile = (req: Request, res: Response, next: NextFunction) =
 
 export const updateAvatar = (req: Request, res: Response, next: NextFunction) => {
   const { avatar } = req.body;
-  const id = req.user._id;
+  const id = req.user as ObjectId;
 
   return updateUser(id, { avatar })
     .then((user) => res.status(STATUS_CODES.Ok).send(user))

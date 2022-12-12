@@ -2,9 +2,10 @@ import express, { json } from 'express';
 import * as dotenv from 'dotenv';
 import { join } from 'path';
 import mongoose from 'mongoose';
-import fakeAuth from './middlewares/fakeAuth';
 import rootRouter from './routes';
 import errorHandler from './middlewares/errorHandler';
+import { createUser, login } from './controllers/user';
+import auth from './middlewares/auth';
 
 dotenv.config({ path: join(__dirname, '../', '.env') });
 
@@ -20,7 +21,12 @@ const app = express();
 mongoose.connect(`mongodb://${DB_HOST}:${DB_PORT}/mestodb`);
 
 app.use(json());
-app.use(fakeAuth);
+
+app.post('/signin', login);
+app.post('/signup', createUser);
+
+app.use(auth);
+
 app.use(rootRouter);
 app.use(errorHandler);
 
