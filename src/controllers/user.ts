@@ -1,9 +1,34 @@
 import { NextFunction, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 import { BadRequestError, NotFoundError, ServerError } from '../errors';
 import STATUS_CODES from '../utils/variables';
 import User from '../models/user';
 import { updateUser } from './helpers';
+
+const { NODE_ENV, JWT_SECRET } = process.env;
+
+const jwtSecret = NODE_ENV && JWT_SECRET && NODE_ENV === 'production' ? JWT_SECRET : 'dev-super-secret';
+
+export const login = (req: Request, res: Response, next: NextFunction) => {
+  const { email, password } = req.body;
+
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      const { _id } = user;
+      const token = jwt.sign({ _id }, jwtSecret);
+
+      res
+        .cookie('jwt', token, {
+          httpOnly: true,
+          sameSite: true,
+          maxAge: 3600000 * 24,
+        })
+        .status(STATUS_CODES.Ok)
+        .send({ token });
+    })
+    .catch(next);
+};
 
 export const getUsers = (req: Request, res: Response, next: NextFunction) => User.find({})
   .then((users) => {

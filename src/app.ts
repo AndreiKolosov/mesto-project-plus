@@ -12,7 +12,7 @@ const {
   PORT = 3000,
   DB_HOST = 'localhost',
   DB_PORT = '27017',
-  ENV = 'development',
+  NODE_ENV = 'development',
 } = process.env;
 
 const app = express();
@@ -29,6 +29,6 @@ app.listen(PORT, () => {
     Server listening on port: ${PORT}
     DataBase host: ${DB_HOST}
     DataBase port: ${DB_PORT}
-    App is running in ${ENV} mode
+    App is running in ${NODE_ENV} mode
   `);
 });
