@@ -1,6 +1,5 @@
 import { Schema, model } from 'mongoose';
 import bcrypt from 'bcrypt';
-import validator from 'validator';
 import { IUser, IUserModel } from '../types/user';
 import { UnauthorizedError } from '../errors';
 
@@ -9,12 +8,6 @@ const userSchema = new Schema<IUser, IUserModel>({
     type: String,
     required: true,
     unique: true,
-    validate: {
-      validator(email: string) {
-        return validator.isEmail(email);
-      },
-      message: 'Передан невалидный email',
-    },
   },
   password: {
     type: String,
@@ -35,12 +28,6 @@ const userSchema = new Schema<IUser, IUserModel>({
   },
   avatar: {
     type: String,
-    validate: {
-      validator(link: string) {
-        return validator.isURL(link, { require_protocol: true });
-      },
-      message: 'Передана невалидная ссылка',
-    },
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
   },
 }, {

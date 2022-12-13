@@ -10,6 +10,7 @@ import errorHandler from './middlewares/errorHandler';
 import { requestLogger, errorLogger } from './middlewares/logger';
 import auth from './middlewares/auth';
 import { signUpValidator, signInValidator } from './utils/validators';
+import { NotFoundError } from './errors';
 
 dotenv.config({ path: join(__dirname, '../', '.env') });
 
@@ -26,6 +27,10 @@ app.post('/signup', signUpValidator, createUser);
 
 app.use(auth);
 app.use(rootRouter);
+
+app.use(() => {
+  throw new NotFoundError('Error 404');
+});
 
 app.use(errorLogger);
 app.use(errors());
