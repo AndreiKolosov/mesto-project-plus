@@ -1,11 +1,8 @@
 /* eslint-disable consistent-return */
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { JWT_SECRET } from '../utils/config';
 import { UnauthorizedError } from '../errors';
-
-const { NODE_ENV, JWT_SECRET } = process.env;
-
-const jwtSecret = NODE_ENV && JWT_SECRET && NODE_ENV === 'production' ? JWT_SECRET : 'dev-super-secret';
 
 const extractBearerToken = (header: string) => header.replace('Bearer ', '');
 
@@ -20,7 +17,7 @@ const auth = (req: Request, res: Response, next: NextFunction) => {
   let payload;
 
   try {
-    payload = jwt.verify(token, jwtSecret);
+    payload = jwt.verify(token, JWT_SECRET);
   } catch (err) {
     throw new UnauthorizedError('Необходима авторизация');
   }

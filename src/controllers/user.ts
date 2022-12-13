@@ -6,10 +6,7 @@ import { BadRequestError, NotFoundError, ServerError } from '../errors';
 import STATUS_CODES from '../utils/variables';
 import User from '../models/user';
 import { updateUser } from './helpers';
-
-const { NODE_ENV, JWT_SECRET } = process.env;
-
-const jwtSecret = NODE_ENV && JWT_SECRET && NODE_ENV === 'production' ? JWT_SECRET : 'dev-super-secret';
+import { JWT_SECRET } from '../utils/config';
 
 export const login = (req: Request, res: Response, next: NextFunction) => {
   const { email, password } = req.body;
@@ -17,7 +14,7 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
   return User.findUserByCredentials(email, password)
     .then((user) => {
       const { _id } = user;
-      const token = jwt.sign({ _id }, jwtSecret);
+      const token = jwt.sign({ _id }, JWT_SECRET);
 
       res
         .cookie('jwt', token, {
