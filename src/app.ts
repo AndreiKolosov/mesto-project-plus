@@ -1,4 +1,4 @@
-import express, { json } from 'express';
+import express, { json, urlencoded } from 'express';
 import * as dotenv from 'dotenv';
 import { join } from 'path';
 import mongoose from 'mongoose';
@@ -15,6 +15,7 @@ const app = express();
 mongoose.connect(DB_URL);
 
 app.use(json());
+app.use(urlencoded({ extended: true }));
 
 app.post('/signin', login);
 app.post('/signup', createUser);

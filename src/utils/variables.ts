@@ -5,6 +5,7 @@ const STATUS_CODES = {
   BadRequest: 400,
   Unauthorized: 401,
   Forbidden: 403,
+  Conflict: 409,
   InternalServerError: 500,
 };
 

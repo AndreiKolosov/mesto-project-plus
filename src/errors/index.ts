@@ -3,6 +3,7 @@ import NotFoundError from './notFoundError';
 import ServerError from './serverError';
 import UnauthorizedError from './unauthorizedError';
 import ForbiddenError from './forbiddenError';
+import ConflictError from './conflictError';
 
 export {
   BadRequestError,
@@ -10,4 +11,5 @@ export {
   ServerError,
   UnauthorizedError,
   ForbiddenError,
+  ConflictError,
 };

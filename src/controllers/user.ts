@@ -2,11 +2,16 @@ import { ObjectId } from 'mongoose';
 import { NextFunction, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { BadRequestError, NotFoundError, ServerError } from '../errors';
 import STATUS_CODES from '../utils/variables';
 import User from '../models/user';
 import { updateUser } from './helpers';
 import { JWT_SECRET } from '../utils/config';
+import {
+  BadRequestError,
+  ConflictError,
+  NotFoundError,
+  ServerError,
+} from '../errors';
 
 export const login = (req: Request, res: Response, next: NextFunction) => {
   const { email, password } = req.body;
@@ -105,6 +110,10 @@ export const createUser = (req: Request, res: Response, next: NextFunction) => {
         customError = new BadRequestError(
           'Переданы некорректные данные при создании пользователя.',
         );
+      }
+
+      if (err.name === 'MongoServerError') {
+        customError = new ConflictError('Пользователь с таким email уже зарегестрирован');
       }
 
       next(customError);
