@@ -13,6 +13,7 @@ const userSchema = new Schema<IUser, IUserModel>({
       validator(email: string) {
         return validator.isEmail(email);
       },
+      message: 'Передан невалидный email',
     },
   },
   password: {
@@ -38,6 +39,7 @@ const userSchema = new Schema<IUser, IUserModel>({
       validator(link: string) {
         return validator.isURL(link, { require_protocol: true });
       },
+      message: 'Передана невалидная ссылка',
     },
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
   },

@@ -1,12 +1,15 @@
-import express, { json, urlencoded } from 'express';
 import * as dotenv from 'dotenv';
-import { join } from 'path';
+import express, { json, urlencoded } from 'express';
 import mongoose from 'mongoose';
-import rootRouter from './routes';
-import errorHandler from './middlewares/errorHandler';
+import { join } from 'path';
+import { errors } from 'celebrate';
 import { createUser, login } from './controllers/user';
-import auth from './middlewares/auth';
+import rootRouter from './routes';
 import { DB_URL, MODE, SERVER_PORT } from './utils/config';
+import errorHandler from './middlewares/errorHandler';
+import { requestLogger, errorLogger } from './middlewares/logger';
+import auth from './middlewares/auth';
+import { signUpValidator, signInValidator } from './utils/validators';
 
 dotenv.config({ path: join(__dirname, '../', '.env') });
 
@@ -16,13 +19,16 @@ mongoose.connect(DB_URL);
 
 app.use(json());
 app.use(urlencoded({ extended: true }));
+app.use(requestLogger);
 
-app.post('/signin', login);
-app.post('/signup', createUser);
+app.post('/signin', signInValidator, login);
+app.post('/signup', signUpValidator, createUser);
 
 app.use(auth);
-
 app.use(rootRouter);
+
+app.use(errorLogger);
+app.use(errors());
 app.use(errorHandler);
 
 app.listen(SERVER_PORT, () => {
