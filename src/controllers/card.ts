@@ -1,9 +1,15 @@
+import { JwtPayload } from 'jsonwebtoken';
 import { ObjectId } from 'mongoose';
 import { NextFunction, Request, Response } from 'express';
-import { BadRequestError, NotFoundError, ServerError } from '../errors';
 import STATUS_CODES from '../utils/variables';
 import Card from '../models/card';
 import { toggleLike } from './helpers';
+import {
+  BadRequestError,
+  ForbiddenError,
+  NotFoundError,
+  ServerError,
+} from '../errors';
 
 export const getCards = (req: Request, res: Response, next: NextFunction) => Card.find({})
   .then((cards) => {
@@ -17,7 +23,7 @@ export const getCards = (req: Request, res: Response, next: NextFunction) => Car
 
 export const createCard = (req: Request, res: Response, next: NextFunction) => {
   const { name, link } = req.body;
-  const id = req.user._id;
+  const id = req.user as ObjectId;
 
   return Card.create({ name, link, owner: id })
     .then((card) => res.status(STATUS_CODES.Created).send({ data: card }))
@@ -34,8 +40,18 @@ export const createCard = (req: Request, res: Response, next: NextFunction) => {
 
 export const deleteCard = (req: Request, res: Response, next: NextFunction) => {
   const { cardId } = req.params;
+  const userId = req.user as JwtPayload;
 
-  return Card.findByIdAndRemove(cardId)
+  return Card.findOne({ _id: cardId })
+    .then((card) => {
+      const ownerId = String(card?.owner);
+
+      if (userId?._id !== ownerId) {
+        throw new ForbiddenError('Вы не являетесь владельцем карточки');
+      }
+
+      return Card.deleteOne({ _id: card?._id });
+    })
     .then(() => res.status(STATUS_CODES.Ok).send({ message: 'Карточка удалена' }))
     .catch((err) => {
       let customError = err;
@@ -50,7 +66,7 @@ export const deleteCard = (req: Request, res: Response, next: NextFunction) => {
 
 export const likeCard = (req: Request, res: Response, next: NextFunction) => {
   const { cardId } = req.params;
-  const userId = req.user._id;
+  const userId = req.user as ObjectId;
 
   return toggleLike(cardId, userId, 'addLike')
     .then((card) => res.status(STATUS_CODES.Ok).send(card))
@@ -71,7 +87,7 @@ export const likeCard = (req: Request, res: Response, next: NextFunction) => {
 
 export const dislikeCard = (req: Request, res: Response, next: NextFunction) => {
   const { cardId } = req.params;
-  const userId = req.user._id as ObjectId;
+  const userId = req.user as ObjectId;
 
   return toggleLike(cardId, userId, 'removeLike')
     .then((card) => res.status(STATUS_CODES.Ok).send(card))
