@@ -3,11 +3,13 @@ import express, { json, urlencoded } from 'express';
 import mongoose from 'mongoose';
 import { join } from 'path';
 import { errors } from 'celebrate';
+import helmet from 'helmet';
 import { createUser, login } from './controllers/user';
 import rootRouter from './routes';
-import { DB_URL, MODE, SERVER_PORT } from './utils/config';
 import errorHandler from './middlewares/errorHandler';
 import { requestLogger, errorLogger } from './middlewares/logger';
+import limiter from './middlewares/limiter';
+import { DB_URL, MODE, SERVER_PORT } from './utils/config';
 import auth from './middlewares/auth';
 import { signUpValidator, signInValidator } from './utils/validators';
 import { NotFoundError } from './errors';
@@ -17,6 +19,9 @@ dotenv.config({ path: join(__dirname, '../', '.env') });
 const app = express();
 
 mongoose.connect(DB_URL);
+
+app.use(helmet());
+app.use(limiter);
 
 app.use(json());
 app.use(urlencoded({ extended: true }));
