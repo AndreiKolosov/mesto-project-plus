@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import { Model, Document, ObjectId } from 'mongoose';
 
 export interface IUser {
